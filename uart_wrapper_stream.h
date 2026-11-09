@@ -9,7 +9,18 @@
 #define INC_UART_WRAPPER_STREAM_H_
 
 #include "buffers.h"
+
+#if defined STM32F103xB
+#include "stm32f1xx.h"
+
+#elif defined STM32F411xE
 #include "stm32f4xx.h"
+
+#else
+#error "stm32xxx version not supported"
+
+#endif
+
 
 #define UART_RX_DR_THRSHLD 0.7
 
@@ -27,6 +38,9 @@ typedef enum{
   UART_ERROR = 3,
   UART_DESYNC = 4
 }UART_State;
+
+
+//TODO fix the fifo definitions to match how they work with external buffers now
 
 typedef struct{
   UART_HandleTypeDef* _huart;
