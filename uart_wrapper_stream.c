@@ -1,9 +1,3 @@
-/*
- * uart_wrapper_stream.c
- *
- *  Created on: Oct 21, 2026
- *      Author: Hamza
- */
 
 #include "uart_wrapper_stream.h"
 
@@ -129,6 +123,8 @@ uint32_t len //the max number of bytes to read
 
 void wUART_RX_FCISR_Impl(wUART* wuart)
 {
+  __DMB();
+
   uint32_t loc_dma_p = wuart->_rx_dma_p;
   wuart->_rx_dma_p = 0;
 
@@ -138,13 +134,15 @@ void wUART_RX_FCISR_Impl(wUART* wuart)
 
   FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma, dma_len);
 
-  if(FIFO_GetCount(&wuart->_rx_fifo) > (wuart->_rx_fifo._size * UART_RX_DR_THRSHLD)\
+  if(FIFO_GetCount(&wuart->_rx_fifo) > (wuart->_rx_fifo._size * wuart->_rx_dr_thr / 100)\
       && wuart->_DataReady_Callback != NULL) wuart->_DataReady_Callback();
 }
 
 
 void wUART_RX_HCISR_Impl(wUART* wuart)
 {
+  __DMB();
+
   uint32_t loc_dma_p = wuart->_rx_dma_p;
   wuart->_rx_dma_p = UART_RX_DMA_BUF_SIZE/2;
 
@@ -154,13 +152,15 @@ void wUART_RX_HCISR_Impl(wUART* wuart)
 
   FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma, dma_len);
 
-  if(FIFO_GetCount(&wuart->_rx_fifo) > (wuart->_rx_fifo._size * UART_RX_DR_THRSHLD / 100)\
+  if(FIFO_GetCount(&wuart->_rx_fifo) > (wuart->_rx_fifo._size * wuart->_rx_dr_thr / 100)\
       && wuart->_DataReady_Callback != NULL) wuart->_DataReady_Callback();
 }
 
 
 void wUART_RX_IDLEISR_Impl(wUART* wuart)
 {
+  __DMB();
+
   uint32_t loc_dma_p = UART_RX_DMA_BUF_SIZE - __HAL_DMA_GET_COUNTER(wuart->_huart->hdmarx);
 
   uint32_t dma_len = loc_dma_p - wuart->_rx_dma_p;

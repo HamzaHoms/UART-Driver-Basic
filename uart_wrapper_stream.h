@@ -46,17 +46,17 @@ typedef struct{
   volatile UART_State _rx_sts;
   void (*_DataReady_Callback)(void);
   void (*_TxCplt_Callback)(void);
+  uint8_t _rx_dr_thr;
 
-  volatile uint8_t _rx_fifo_buf[UART_RX_FIFO_SIZE];
-  volatile uint8_t _tx_fifo_buf[UART_TX_FIFO_SIZE];
+  uint8_t _rx_fifo_buf[UART_RX_FIFO_SIZE];
+  uint8_t _tx_fifo_buf[UART_TX_FIFO_SIZE];
 
   FIFO_t _rx_fifo;
   FIFO_t _tx_fifo;
 
-  volatile uint8_t _tx_buf_dma[UART_TX_DMA_BUF_SIZE];
-  volatile uint8_t _rx_buf_dma[UART_RX_DMA_BUF_SIZE];
+  uint8_t _tx_buf_dma[UART_TX_DMA_BUF_SIZE];
+  uint8_t _rx_buf_dma[UART_RX_DMA_BUF_SIZE];
   volatile uint32_t _rx_dma_p;
-  uint8_t _rx_dr_thr;
 
 } wUART;
 
