@@ -38,8 +38,6 @@ typedef enum{
 }UART_State;
 
 
-//TODO fix the fifo definitions to match how they work with external buffers now
-
 typedef struct{
   UART_HandleTypeDef* _huart;
   volatile UART_State _tx_sts;
