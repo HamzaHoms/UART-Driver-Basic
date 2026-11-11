@@ -123,7 +123,7 @@ uint32_t len //the max number of bytes to read
 
 void wUART_RX_FCISR_Impl(wUART* wuart)
 {
-  __DMB();
+  __asm__ volatile ("" ::: "memory");
 
   uint32_t loc_dma_p = wuart->_rx_dma_p;
   wuart->_rx_dma_p = 0;
@@ -141,7 +141,7 @@ void wUART_RX_FCISR_Impl(wUART* wuart)
 
 void wUART_RX_HCISR_Impl(wUART* wuart)
 {
-  __DMB();
+  __asm__ volatile ("" ::: "memory");
 
   uint32_t loc_dma_p = wuart->_rx_dma_p;
   wuart->_rx_dma_p = UART_RX_DMA_BUF_SIZE/2;
@@ -159,7 +159,7 @@ void wUART_RX_HCISR_Impl(wUART* wuart)
 
 void wUART_RX_IDLEISR_Impl(wUART* wuart)
 {
-  __DMB();
+  __asm__ volatile ("" ::: "memory");
 
   uint32_t loc_dma_p = UART_RX_DMA_BUF_SIZE - __HAL_DMA_GET_COUNTER(wuart->_huart->hdmarx);
 
