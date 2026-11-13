@@ -34,7 +34,8 @@ typedef enum{
   UART_BUSY = 1,
   UART_TX_PAUSE = 2,
   UART_ERROR = 3,
-  UART_DESYNC = 4
+  UART_DESYNC = 4,
+  UART_OVERWRITE = 5
 }UART_State;
 
 

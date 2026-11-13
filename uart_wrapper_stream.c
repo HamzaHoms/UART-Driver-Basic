@@ -117,7 +117,15 @@ uint8_t* buf, //the buffer that will be read into
 uint32_t len //the max number of bytes to read
 )
 {
-  return FIFO_Pop(&wuart->_rx_fifo, buf, len);
+  wuart->_rx_sts = UART_BUSY;
+  uint32_t read_n = FIFO_Pop(&wuart->_rx_fifo, buf, len);
+  if(wuart->_rx_sts != UART_OVERWRITE)
+    {
+      wuart->_rx_sts = UART_CLEAR;
+      return read_n;
+    }
+
+  return UART_ERROR;
 }
 
 
@@ -130,7 +138,11 @@ void wUART_RX_FCISR_Impl(wUART* wuart)
 
   uint32_t dma_len = UART_RX_DMA_BUF_SIZE - loc_dma_p;
 
-  if(FIFO_GetEmpty(&wuart->_rx_fifo) < dma_len) FIFO_Discard(&wuart->_rx_fifo,  dma_len);
+  if(FIFO_GetEmpty(&wuart->_rx_fifo) < dma_len)
+    {
+      if(wuart->_rx_sts != UART_CLEAR) wuart->_rx_sts = UART_OVERWRITE;
+      FIFO_Discard(&wuart->_rx_fifo,  dma_len);
+    }
 
   FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma, dma_len);
 
@@ -148,7 +160,11 @@ void wUART_RX_HCISR_Impl(wUART* wuart)
 
   uint32_t dma_len = UART_RX_DMA_BUF_SIZE/2 - loc_dma_p;
 
-  if(FIFO_GetEmpty(&wuart->_rx_fifo) < dma_len) FIFO_Discard(&wuart->_rx_fifo,  dma_len);
+  if(FIFO_GetEmpty(&wuart->_rx_fifo) < dma_len)
+    {
+      if(wuart->_rx_sts != UART_CLEAR) wuart->_rx_sts = UART_OVERWRITE;
+      FIFO_Discard(&wuart->_rx_fifo,  dma_len);
+    }
 
   FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma, dma_len);
 
@@ -165,7 +181,11 @@ void wUART_RX_IDLEISR_Impl(wUART* wuart)
 
   uint32_t dma_len = loc_dma_p - wuart->_rx_dma_p;
 
-  if(FIFO_GetEmpty(&wuart->_rx_fifo) < dma_len) FIFO_Discard(&wuart->_rx_fifo,  dma_len);
+  if(FIFO_GetEmpty(&wuart->_rx_fifo) < dma_len)
+    {
+      if(wuart->_rx_sts != UART_CLEAR) wuart->_rx_sts = UART_OVERWRITE;
+      FIFO_Discard(&wuart->_rx_fifo,  dma_len);
+    }
 
   FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma + wuart->_rx_dma_p, dma_len);
 
