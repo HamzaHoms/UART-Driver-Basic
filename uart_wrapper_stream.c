@@ -97,6 +97,9 @@ wUART* wuart //the target uart wrapper instance pointer
 
   if(sts == HAL_OK)
     {
+      __HAL_UART_CLEAR_IDLEFLAG(wuart->_huart);
+      __HAL_UART_ENABLE_IT(wuart->_huart, UART_IT_IDLE);
+
       wuart->_rx_sts = UART_BUSY;
       return HAL_OK;
     }
@@ -150,7 +153,7 @@ void wUART_RX_FCISR_Impl(wUART* wuart)
       FIFO_Discard(&wuart->_rx_fifo,  dma_len);
     }
 
-  FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma, dma_len);
+  FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma + loc_dma_p, dma_len);
 
   if(FIFO_GetCount(&wuart->_rx_fifo) > (wuart->_rx_fifo._size * wuart->_rx_dr_thr / 100)\
       && wuart->_DataReady_Callback != NULL) wuart->_DataReady_Callback();
@@ -172,7 +175,7 @@ void wUART_RX_HCISR_Impl(wUART* wuart)
       FIFO_Discard(&wuart->_rx_fifo,  dma_len);
     }
 
-  FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma, dma_len);
+  FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma + loc_dma_p, dma_len);
 
   if(FIFO_GetCount(&wuart->_rx_fifo) > (wuart->_rx_fifo._size * wuart->_rx_dr_thr / 100)\
       && wuart->_DataReady_Callback != NULL) wuart->_DataReady_Callback();
@@ -183,9 +186,9 @@ void wUART_RX_IDLEISR_Impl(wUART* wuart)
 {
   __asm__ volatile ("" ::: "memory");
 
-  uint32_t loc_dma_p = UART_RX_DMA_BUF_SIZE - __HAL_DMA_GET_COUNTER(wuart->_huart->hdmarx);
+  uint32_t fin_dma_p = UART_RX_DMA_BUF_SIZE - __HAL_DMA_GET_COUNTER(wuart->_huart->hdmarx);
 
-  uint32_t dma_len = loc_dma_p - wuart->_rx_dma_p;
+  uint32_t dma_len = fin_dma_p - wuart->_rx_dma_p;
 
   if(FIFO_GetEmpty(&wuart->_rx_fifo) < dma_len)
     {
@@ -194,10 +197,9 @@ void wUART_RX_IDLEISR_Impl(wUART* wuart)
     }
 
   FIFO_Append(&wuart->_rx_fifo, wuart->_rx_buf_dma + wuart->_rx_dma_p, dma_len);
+  wuart->_rx_dma_p = fin_dma_p;
 
   if(wuart->_DataReady_Callback != NULL) wuart->_DataReady_Callback();
-
-  wuart->_rx_dma_p = loc_dma_p;
 }
 
 
