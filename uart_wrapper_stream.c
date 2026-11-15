@@ -70,6 +70,12 @@ uint32_t len //the number of bytes to be sent
         BUFFER_Status sts = FIFO_Append(&wuart->_tx_fifo, buf, len);
         if(sts == BUF_ERROR) return HAL_ERROR;
 
+        if(wuart->_tx_sts == UART_CLEAR)
+          {
+            wuart->_tx_sts = UART_BUSY;
+            wUART_TX_FCISR_Impl(wuart);
+          }
+
         return HAL_OK;
       }
 
